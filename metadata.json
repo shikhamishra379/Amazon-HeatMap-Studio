@@ -1,0 +1,5 @@
+{
+  "name": "Amazon HeatMap Studio",
+  "description": "An AI-powered tool for analyzing Amazon product listings. It generates predictive attention heatmaps and conversion optimization reports based on uploaded visual assets.",
+  "requestFramePermissions": []
+}
