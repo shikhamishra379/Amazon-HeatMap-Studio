@@ -23,6 +23,13 @@ export interface StrategicInsight {
   actionPlan: string[]; // Specific steps for PPC or Creative
 }
 
+export interface ComparativeMetric {
+  metric: string;
+  scoreA: number; // 0-100
+  scoreB: number; // 0-100
+  winner: 'A' | 'B' | 'Tie';
+}
+
 export interface AnalysisReport {
   metrics: {
     visibilityScore: number;
@@ -51,6 +58,7 @@ export interface AnalysisReport {
     keyDifferentiator: string;
     reasoning: string;
   };
+  comparativeAnalysis?: ComparativeMetric[]; // New field for A/B scores
 
   hotspotsAnalysis: {
     element: string;

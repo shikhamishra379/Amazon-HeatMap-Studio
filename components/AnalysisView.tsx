@@ -8,9 +8,10 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Cell
+  Cell,
+  Legend
 } from 'recharts';
-import { Eye, Target, Zap, Lightbulb, Activity, TrendingUp, DollarSign, MousePointer, ShoppingBag, Trophy, Scale } from 'lucide-react';
+import { Eye, Target, Zap, Lightbulb, Activity, TrendingUp, DollarSign, MousePointer, ShoppingBag, Trophy, Scale, CheckCircle2 } from 'lucide-react';
 
 interface AnalysisViewProps {
   result: AnalysisResult;
@@ -65,7 +66,7 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, context }) =
       </div>
 
       {/* A/B Verdict Card (Only for A/B Tests) */}
-      {report.abTestVerdict && (
+      {isAB && report.abTestVerdict && (
         <div className="bg-gradient-to-r from-purple-900/40 to-pink-900/40 rounded-xl p-6 border border-purple-500/50 shadow-lg">
            <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
              <Trophy className="w-5 h-5 text-yellow-400" />
@@ -85,16 +86,47 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, context }) =
         </div>
       )}
 
+      {/* Comparative Analysis Chart (Only for A/B Tests) */}
+      {isAB && report.comparativeAnalysis && (
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-pink-500" /> Head-to-Head Scores
+          </h3>
+          <div className="h-56 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={report.comparativeAnalysis}
+                layout="vertical"
+                margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+                <XAxis type="number" domain={[0, 100]} hide />
+                <YAxis dataKey="metric" type="category" width={80} tick={{fill: '#9ca3af', fontSize: 11}} />
+                <Tooltip 
+                   cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                   contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
+                />
+                <Legend iconSize={8} wrapperStyle={{ fontSize: '12px', color: '#9ca3af' }} />
+                <Bar dataKey="scoreA" name="Image A" fill="#ec4899" radius={[0, 4, 4, 0]} barSize={12} />
+                <Bar dataKey="scoreB" name="Image B" fill="#8b5cf6" radius={[0, 4, 4, 0]} barSize={12} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
+
       {/* Summary Card */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
-          <Zap className="w-5 h-5 text-yellow-400" />
-          Executive Summary
-        </h2>
-        <p className="text-gray-300 text-sm leading-relaxed">
-          {report.summary}
-        </p>
-      </div>
+      {!isAB && (
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <h2 className="text-lg font-semibold text-white mb-2 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-yellow-400" />
+            Executive Summary
+          </h2>
+          <p className="text-gray-300 text-sm leading-relaxed">
+            {report.summary}
+          </p>
+        </div>
+      )}
 
       {/* Commercial Projections */}
       <div className="grid grid-cols-2 gap-4">
@@ -161,33 +193,35 @@ export const AnalysisView: React.FC<AnalysisViewProps> = ({ result, context }) =
         </div>
       </div>
 
-      {/* Primary Metrics Chart */}
-      <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-        <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Core Visual Scores (1-10)</h3>
-        <div className="h-40 w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={scoreData} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
-              <XAxis type="number" domain={[0, 10]} hide />
-              <YAxis 
-                dataKey="name" 
-                type="category" 
-                tick={{ fill: '#9ca3af', fontSize: 11 }} 
-                width={70}
-              />
-              <Tooltip 
-                cursor={{fill: 'rgba(255,255,255,0.05)'}}
-                contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
-              />
-              <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
-                {scoreData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+      {/* Standard Metrics Chart (Hide if AB test, as we show head-to-head) */}
+      {!isAB && (
+        <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
+          <h3 className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4">Core Visual Scores (1-10)</h3>
+          <div className="h-40 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={scoreData} layout="vertical" margin={{ top: 0, right: 30, left: 40, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
+                <XAxis type="number" domain={[0, 10]} hide />
+                <YAxis 
+                  dataKey="name" 
+                  type="category" 
+                  tick={{ fill: '#9ca3af', fontSize: 11 }} 
+                  width={70}
+                />
+                <Tooltip 
+                  cursor={{fill: 'rgba(255,255,255,0.05)'}}
+                  contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#fff' }}
+                />
+                <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={20}>
+                  {scoreData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Share of Attention */}
       <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">

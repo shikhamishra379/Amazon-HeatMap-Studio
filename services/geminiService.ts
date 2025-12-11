@@ -79,6 +79,20 @@ const responseSchema: Schema = {
           },
           required: ["winner", "confidenceScore", "keyDifferentiator", "reasoning"],
         },
+        comparativeAnalysis: {
+          type: Type.ARRAY,
+          description: "Side-by-side scoring for A/B tests (e.g. Appeal, Clarity, Trustworthiness).",
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              metric: { type: Type.STRING },
+              scoreA: { type: Type.NUMBER, description: "Score 0-100" },
+              scoreB: { type: Type.NUMBER, description: "Score 0-100" },
+              winner: { type: Type.STRING, enum: ["A", "B", "Tie"] },
+            },
+            required: ["metric", "scoreA", "scoreB", "winner"],
+          },
+        },
         hotspotsAnalysis: {
           type: Type.ARRAY,
           items: {
@@ -174,15 +188,18 @@ const getContextSpecificInstructions = (context: AnalysisContext): string => {
       `;
     case AnalysisContext.AB_TEST:
       return `
-        SCENARIO: A/B COMPARISON TEST
-        * YOUR ROLE: CRO Experimentation Lead.
-        * KEY OBJECTIVE: Determine the statistical winner.
-        * ANALYSIS FOCUS: 
-          1. Compare Image A (Control) vs Image B (Variant).
-          2. Which one communicates value faster?
-          3. Which has less cognitive load?
-        * CRITICAL: You MUST populate the 'abTestVerdict' field.
-        * OUTPUT: Generate 'hotspots' for Image A and 'hotspotsB' for Image B.
+        SCENARIO: A/B COMPARISON TEST (PICKFU STYLE)
+        * YOUR ROLE: CRO Experimentation Lead & Consumer Psychologist.
+        * KEY OBJECTIVE: Determine the statistical winner based on simulated consumer preference.
+        * SIMULATION: Imagine you are polling 50 Amazon shoppers.
+        * METRICS TO COMPARE:
+          - Click-Through Potential (Who gets the click?)
+          - Information Clarity (Who communicates value faster?)
+          - Purchase Intent (Who creates more desire?)
+        * OUTPUT:
+          - Populate 'abTestVerdict' with the winner.
+          - Populate 'comparativeAnalysis' with scores (0-100) for at least 3 distinct metrics.
+          - Generate 'hotspots' for Image A and 'hotspotsB' for Image B.
       `;
     default:
       return "General Amazon Visual Analysis.";
@@ -223,6 +240,7 @@ export const analyzeImage = async (
     - Image 1 is "Image A" (Control).
     - Image 2 is "Image B" (Variant).
     - Provide separate hotspots for each if possible, or focused analysis on the winner.
+    - BE DECISIVE. Do not say "it depends". Pick a winner based on Amazon Best Practices.
     
     Output strictly in the requested JSON schema.
   `;
